@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEGACY CRM — Tax · Formation · Consulting</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --nav:#1a1f2e;--nav-text:rgba(255,255,255,0.6);--gold:#c9973a;--gold-light:#f5c97a;
+  --bg:#f4f3ef;--surface:#ffffff;--surface2:#f8f7f4;--border:rgba(0,0,0,0.1);
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --green-bg:#EAF3DE;--green-text:#27500A;--green-border:#C0DD97;
+  --blue-bg:#E6F1FB;--blue-text:#0C447C;
+  --amber-bg:rgba(201,151,58,0.12);--amber-text:#854F0B;
+  --red-bg:#FCEBEB;--red-text:#791F1F;
+  --radius:12px;--radius-sm:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--gold);text-decoration:none}
+
+/* LAYOUT */
+.shell{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.sidebar{background:var(--nav);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{overflow-y:auto;background:var(--bg)}
+
+/* SIDEBAR */
+.brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.brand-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:0.03em}
+.brand-logo span{color:var(--gold)}
+.brand-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:4px;letter-spacing:0.06em;text-transform:uppercase}
+.nav-section{padding:16px 0 4px}
+.nav-label{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0 20px 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.55);transition:all 0.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9)}
+.nav-item.active{background:rgba(201,151,58,0.15);color:var(--gold-light)}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.nav-badge{font-size:10px;background:var(--gold);color:#1a1f2e;padding:1px 7px;border-radius:10px;font-weight:600;margin-left:auto}
+.nav-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08)}
+.nav-bottom p{font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6}
+
+/* PAGES */
+.page{display:none;padding:30px}
+.page.active{display:block}
+.page-header{margin-bottom:24px}
+.page-title{font-size:22px;font-weight:600;color:var(--text)}
+.page-sub{font-size:13px;color:var(--text2);margin-top:4px}
+
+/* CARDS */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.04em}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:16px}
+.metric-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.metric-value{font-size:26px;font-weight:600;color:var(--text)}
+.metric-delta{font-size:11px;color:#27500A;margin-top:3px}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);font-weight:600;padding:0 0 10px;border-bottom:1px solid var(--border)}
+td{padding:10px 0;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td+td{padding-left:8px}
+th+th{padding-left:8px}
+
+/* PILLS / BADGES */
+.pill{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.p-tax{background:var(--blue-bg);color:var(--blue-text)}
+.p-biz{background:var(--green-bg);color:var(--green-text)}
+.p-consult{background:var(--amber-bg);color:var(--amber-text)}
+.p-paid,.p-filed,.p-complete{background:var(--green-bg);color:var(--green-text)}
+.p-pending,.p-sent{background:#FAEEDA;color:#633806}
+.p-review,.p-progress{background:var(--blue-bg);color:var(--blue-text)}
+.p-overdue{background:var(--red-bg);color:var(--red-text)}
+.p-draft{background:var(--surface2);color:var(--text2);border:0.5px solid var(--border)}
+
+/* AVATAR */
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.av-b{background:#B5D4F4;color:#0C447C}
+.av-g{background:#C0DD97;color:#27500A}
+.av-a{background:#FAC775;color:#633806}
+.av-p{background:#CECBF6;color:#3C3489}
+.av-c{background:#F5C4B3;color:#712B13}
+.av-r{background:#ffd6e7;color:#7d1a3e}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em}
+.field input,.field select,.field textarea{font-family:inherit;font-size:13px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);outline:none;transition:border 0.15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,151,58,0.12)}
+.field textarea{resize:vertical;min-height:80px}
+.sec-divider{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:22px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(201,151,58,0.2)}
+.cb-group{display:flex;flex-wrap:wrap;gap:8px}
+.cb-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface);transition:all 0.12s}
+.cb-item:hover{border-color:var(--gold);background:var(--amber-bg)}
+.cb-item input{accent-color:var(--gold);width:13px;height:13px;cursor:pointer}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.btn{font-family:inherit;font-size:13px;font-weight:500;padding:9px 18px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--nav);color:#fff;border-color:var(--nav)}
+.btn-primary:hover{background:#252c3f}
+.btn-gold{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn-gold:hover{background:#b8862d}
+.btn-sm{font-size:12px;padding:7px 14px}
+.btn-danger{background:var(--red-bg);color:var(--red-text);border-color:#f09595}
+
+/* ALERTS */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:16px;display:none}
+.alert-success{background:var(--green-bg);color:var(--green-text);border:1px solid var(--green-border)}
+.alert-info{background:var(--blue-bg);color:var(--blue-text);border:1px solid #85B7EB}
+
+/* TABS */
+.tab-bar{display:flex;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;width:fit-content;margin-bottom:20px}
+.tab{font-family:inherit;font-size:12px;font-weight:500;padding:8px 18px;cursor:pointer;border:none;background:var(--surface);color:var(--text2);transition:all 0.15s}
+.tab:hover{background:var(--surface2)}
+.tab.active{background:var(--nav);color:#fff}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* PIPELINE */
+.pipeline{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.pipe-col{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;min-width:150px;flex-shrink:0}
+.pipe-col-title{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);font-weight:600;margin-bottom:8px}
+.pipe-count{font-size:24px;font-weight:600;color:var(--text);margin-bottom:2px}
+.pipe-label{font-size:11px;color:var(--text2)}
+
+/* ACTIVITY */
+.act-item{display:flex;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0}
+.act-title{font-size:13px;color:var(--text)}
+.act-time{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* INVOICE BUILDER */
+.inv-line{display:grid;grid-template-columns:1fr 60px 90px 90px 30px;gap:8px;align-items:center;margin-bottom:8px}
+.inv-line input{font-family:inherit;font-size:12px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);outline:none;width:100%}
+.inv-line input:focus{border-color:var(--gold)}
+.inv-line input[readonly]{background:var(--surface2);color:var(--text2)}
+.inv-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:0;line-height:1;transition:color 0.12s}
+.inv-del:hover{color:var(--red-text)}
+.inv-totals{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;min-width:240px;margin-left:auto;margin-top:8px}
+.inv-t-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.inv-t-row.big{font-size:15px;font-weight:600;border-top:1px solid var(--border);margin-top:8px;padding-top:8px}
+
+/* CALENDAR */
+.cal-wrap{display:grid;grid-template-columns:1fr 260px;gap:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-headers{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-dh{font-size:10px;text-align:center;color:var(--text3);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:4px 0}
+.cal-day{min-height:56px;background:var(--surface2);border:1px solid transparent;border-radius:var(--radius-sm);padding:7px;cursor:pointer;transition:all 0.12s}
+.cal-day:hover{background:var(--surface);border-color:var(--border)}
+.cal-day.has-appt{border-color:rgba(201,151,58,0.4);background:rgba(201,151,58,0.05)}
+.cal-day.today{border-color:#378ADD;background:var(--blue-bg)}
+.cal-day.empty{background:none;border:none;cursor:default}
+.cal-num{font-size:12px;font-weight:500;color:var(--text)}
+.cal-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:4px}
+.appt-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.appt-time{font-size:11px;font-weight:600;color:var(--gold);min-width:55px;flex-shrink:0}
+.appt-name{font-size:13px;font-weight:500;color:var(--text)}
+.appt-type{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* DOC CHECKLIST */
+.cl-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cl-btn{font-family:inherit;font-size:12px;padding:6px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all 0.12s}
+.cl-btn:hover{border-color:var(--gold);color:var(--text)}
+.cl-btn.active{background:var(--nav);color:#fff;border-color:var(--nav)}
+.cl-progress-wrap{margin-bottom:14px}
+.cl-progress-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.cl-bar-bg{height:6px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.cl-bar-fill{height:6px;background:var(--gold);border-radius:4px;transition:width 0.3s}
+.cl-list{display:flex;flex-direction:column;gap:6px}
+.cl-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all 0.12s}
+.cl-item.checked{background:var(--surface2)}
+.cl-item input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.cl-label{flex:1;font-size:13px;color:var(--text)}
+.cl-item.checked .cl-label{text-decoration:line-through;color:var(--text3)}
+.cl-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;flex-shrink:0}
+.cl-req{background:var(--red-bg);color:var(--red-text)}
+.cl-rec{background:#FAEEDA;color:#633806}
+.cl-opt{background:var(--surface2);color:var(--text2);border:0.5px solid var(--border)}
+
+/* BAR CHART */
+.bar-row{margin-bottom:12px}
+.bar-header{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.bar-track{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.bar-fill{height:7px;border-radius:4px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-230px;z-index:100;transition:left 0.3s;height:100vh}
+  .sidebar.open{left:0}
+  .metrics{grid-template-columns:1fr 1fr}
+  .card-row,.card-row-3,.form-grid,.form-grid-3{grid-template-columns:1fr}
+  .cal-wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-logo">LEGACY<span> CRM</span></div>
+    <div class="brand-sub">Tax · Formation · Consulting</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <button class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
+    <button class="nav-item" onclick="nav('clients')"><span class="nav-icon">👥</span>Clients<span class="nav-badge" id="nb-clients">5</span></button>
+    <button class="nav-item" onclick="nav('pipeline')"><span class="nav-icon">📈</span>Pipeline</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Intake</div>
+    <button class="nav-item" onclick="nav('intake')"><span class="nav-icon">📋</span>New intake</button>
+    <button class="nav-item" onclick="nav('submissions')"><span class="nav-icon">📥</span>Submissions</button>
+    <button class="nav-item" onclick="nav('docs')"><span class="nav-icon">📁</span>Doc checklists</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Billing</div>
+    <button class="nav-item" onclick="nav('invoices')"><span class="nav-icon">💰</span>Invoices<span class="nav-badge" id="nb-inv">3</span></button>
+    <button class="nav-item" onclick="nav('new-invoice')"><span class="nav-icon">➕</span>New invoice</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Schedule</div>
+    <button class="nav-item" onclick="nav('appointments')"><span class="nav-icon">📅</span>Appointments</button>
+    <button class="nav-item" onclick="nav('new-appt')"><span class="nav-icon">🗓️</span>Book appointment</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Services</div>
+    <button class="nav-item" onclick="nav('taxes')"><span class="nav-icon">🏛️</span>Tax prep</button>
+    <button class="nav-item" onclick="nav('formation')"><span class="nav-icon">🏢</span>Formation</button>
+  </div>
+
+  <div class="nav-bottom">
+    <p>PTIN · EFIN · Service Bureau<br>cajlayton-arch · LEGACY CRM</p>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div class="page-title">Good morning ☀️</div>
+    <div class="page-sub">Tax season 2025 · Dashboard overview</div>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Active clients</div><div class="metric-value">47</div><div class="metric-delta">↑ +3 this week</div></div>
+    <div class="metric"><div class="metric-label">Returns filed</div><div class="metric-value">31</div><div class="metric-delta">↑ +8 since Monday</div></div>
+    <div class="metric"><div class="metric-label">Outstanding</div><div class="metric-value">$2,840</div><div class="metric-delta" style="color:#854F0B">3 invoices due</div></div>
+    <div class="metric"><div class="metric-label">This week appts</div><div class="metric-value">8</div><div class="metric-delta">↑ 3 today</div></div>
+  </div>
+  <div class="card-row">
+    <div class="card">
+      <div class="card-title">Today's schedule</div>
+      <div class="appt-card"><div class="appt-time">9:00 AM</div><div><div class="appt-name">Marcus Thompson</div><div class="appt-type">Tax prep review</div></div></div>
+      <div class="appt-card"><div class="appt-time">11:30 AM</div><div><div class="appt-name">Renée Williams</div><div class="appt-type">Return sign-off</div></div></div>
+      <div class="appt-card"><div class="appt-time">2:00 PM</div><div><div class="appt-name">James Foster</div><div class="appt-type">Business consult</div></div></div>
+      <div style="margin-top:12px"><button class="btn btn-sm btn-primary" onclick="nav('new-appt')">+ Book appointment</button></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent activity</div>
+      <div class="act-item"><div class="act-dot"></div><div><div class="act-title">Invoice #1008 — Marcus T. sent</div><div class="act-time">1 hr ago</div></div></div>
+      <div class="act-item"><div class="act-dot"></div><div><div class="act-title">Bloom Beauty LLC — Formation complete</div><div class="act-time">2 hrs ago</div></div></div>
+      <div class="act-item"><div class="act-dot"></div><div><div class="act-title">Renée W. — All docs received</div><div class="act-time">Yesterday</div></div></div>
+      <div class="act-item"><div class="act-dot"></div><div><div class="act-title">Invoice #1007 — Diana A. paid ✓</div><div class="act-time">Yesterday</div></div></div>
+      <div class="act-item"><div class="act-dot"></div><div><div class="act-title">James Foster — Consulting intake submitted</div><div class="act-time">2 days ago</div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Services breakdown</div>
+    <div class="bar-row"><div class="bar-header"><span>Tax preparation</span><span style="font-weight:600">28 clients</span></div><div class="bar-track"><div class="bar-fill" style="width:59%;background:#378ADD"></div></div></div>
+    <div class="bar-row"><div class="bar-header"><span>Business formation</span><span style="font-weight:600">14 clients</span></div><div class="bar-track"><div class="bar-fill" style="width:30%;background:#639922"></div></div></div>
+    <div class="bar-row"><div class="bar-header"><span>Consulting</span><span style="font-weight:600">5 clients</span></div><div class="bar-track"><div class="bar-fill" style="width:11%;background:var(--gold)"></div></div></div>
+  </div>
+</div>
+
+<!-- CLIENTS -->
+<div class="page" id="page-clients">
+  <div class="page-header">
+    <div class="page-title">Clients</div>
+    <div class="page-sub">All active client records</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <input type="text" placeholder="🔍 Search clients..." style="font-family:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);outline:none;width:220px" oninput="filterClients(this.value)">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="nav('intake')">+ New intake</button>
+        <button class="btn btn-sm btn-primary" onclick="nav('intake')">+ Add client</button>
+      </div>
+    </div>
+    <table id="clients-table">
+      <thead><tr><th>Client</th><th>Service</th><th>Status</th><th>Balance</th><th>Last contact</th></tr></thead>
+      <tbody>
+        <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-b">MT</div><div><div style="font-weight:500">Marcus Thompson</div><div style="font-size:11px;color:var(--text3)">marcus@email.com</div></div></div></td><td><span class="pill p-tax">Tax prep</span></td><td><span class="pill p-progress">In progress</span></td><td style="font-weight:500">$350</td><td style="color:var(--text3);font-size:12px">Today</td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-g">BB</div><div><div style="font-weight:500">Bloom Beauty LLC</div><div style="font-size:11px;color:var(--text3)">owner@bloombeauty.co</div></div></div></td><td><span class="pill p-biz">Formation</span></td><td><span class="pill p-complete">Complete</span></td><td style="color:var(--text3)">$0</td><td style="color:var(--text3);font-size:12px">2 days ago</td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-a">RW</div><div><div style="font-weight:500">Renée Williams</div><div style="font-size:11px;color:var(--text3)">rwilliams@email.com</div></div></div></td><td><span class="pill p-tax">Tax prep</span></td><td><span class="pill p-review">In review</span></td><td style="color:#791F1F;font-weight:500">$400 overdue</td><td style="color:var(--text3);font-size:12px">Yesterday</td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-p">JF</div><div><div style="font-weight:500">James Foster</div><div style="font-size:11px;color:var(--text3)">jfoster@biz.com</div></div></div></td><td><span class="pill p-consult">Consulting</span></td><td><span class="pill p-progress">In progress</span></td><td style="font-weight:500">$800</td><td style="color:var(--text3);font-size:12px">Yesterday</td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="av av-c">DA</div><div><div style="font-weight:500">Diana Achebe</div><div style="font-size:11px;color:var(--text3)">diana@email.com</div></div></div></td><td><span class="pill p-tax">Tax prep</span></td><td><span class="pill p-filed">Filed</span></td><td style="color:var(--text3)">$0</td><td style="color:var(--text3);font-size:12px">4 days ago</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="page" id="page-pipeline">
+  <div class="page-header">
+    <div class="page-title">Pipeline</div>
+    <div class="page-sub">Client workflow at a glance</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tax preparation pipeline</div>
+    <div class="pipeline">
+      <div class="pipe-col"><div class="pipe-col-title">New intake</div><div class="pipe-count">8</div><div class="pipe-label">awaiting docs</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Docs received</div><div class="pipe-count">11</div><div class="pipe-label">ready to prep</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">In prep</div><div class="pipe-count">6</div><div class="pipe-label">being worked</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Client review</div><div class="pipe-count">4</div><div class="pipe-label">awaiting approval</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">E-filed</div><div class="pipe-count">31</div><div class="pipe-label">complete</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Business formation & consulting</div>
+    <div class="pipeline">
+      <div class="pipe-col"><div class="pipe-col-title">Inquiry</div><div class="pipe-count">3</div><div class="pipe-label">new leads</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Strategy call</div><div class="pipe-count">4</div><div class="pipe-label">scheduled</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Filing</div><div class="pipe-count">5</div><div class="pipe-label">in process</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Active</div><div class="pipe-count">7</div><div class="pipe-label">ongoing clients</div></div>
+      <div class="pipe-col"><div class="pipe-col-title">Complete</div><div class="pipe-count">14</div><div class="pipe-label">closed</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTAKE -->
+<div class="page" id="page-intake">
+  <div class="page-header">
+    <div class="page-title">New client intake</div>
+    <div class="page-sub">Select service type to load the correct form</div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('intake','tax',this)">📄 Tax preparation</button>
+    <button class="tab" onclick="switchTab('intake','biz',this)">🏢 Business consulting</button>
+  </div>
+
+  <!-- TAX FORM -->
+  <div class="tab-panel active" id="intake-tax">
+    <div id="tax-ok" class="alert alert-success">✅ Client intake saved successfully. Record created.</div>
+    <div class="card">
+      <div class="sec-divider">Personal information</div>
+      <div class="form-grid">
+        <div class="field"><label>First name *</label><input type="text" placeholder="First name"></div>
+        <div class="field"><label>Last name *</label><input type="text" placeholder="Last name"></div>
+        <div class="field"><label>Date of birth</label><input type="date"></div>
+        <div class="field"><label>SSN (last 4 only)</label><input type="text" placeholder="••••" maxlength="4"></div>
+        <div class="field"><label>Phone *</label><input type="tel" placeholder="(555) 000-0000"></div>
+        <div class="field"><label>Email *</label><input type="email" placeholder="email@address.com"></div>
+        <div class="field form-full"><label>Home address</label><input type="text" placeholder="Street, City, State, ZIP"></div>
+      </div>
+      <div class="sec-divider">Filing information</div>
+      <div class="form-grid">
+        <div class="field"><label>Filing status</label><select><option>Single</option><option>Married filing jointly</option><option>Married filing separately</option><option>Head of household</option><option>Qualifying widow(er)</option></select></div>
+        <div class="field"><label>Tax year</label><select><option>2024</option><option>2023</option><option>2022</option><option>2021</option></select></div>
+        <div class="field"><label>Number of dependents</label><input type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>State return?</label><select><option>Yes — include state</option><option>No — federal only</option><option>Multiple states</option></select></div>
+        <div class="field"><label>Urgency</label><select><option>Standard</option><option>Rush — deadline soon</option><option>Extension filed</option></select></div>
+        <div class="field"><label>Prior year preparer?</label><select><option>First time client</option><option>Returning client</option><option>Transferred from another preparer</option></select></div>
+      </div>
+      <div class="sec-divider">Income sources — check all that apply</div>
+      <div class="cb-group">
+        <label class="cb-item"><input type="checkbox"> W-2 wages</label>
+        <label class="cb-item"><input type="checkbox"> Self-employment / 1099-NEC</label>
+        <label class="cb-item"><input type="checkbox"> Business income (K-1)</label>
+        <label class="cb-item"><input type="checkbox"> Rental income</label>
+        <label class="cb-item"><input type="checkbox"> Social security</label>
+        <label class="cb-item"><input type="checkbox"> Retirement / pension</label>
+        <label class="cb-item"><input type="checkbox"> Investment / dividends</label>
+        <label class="cb-item"><input type="checkbox"> Cryptocurrency</label>
+        <label class="cb-item"><input type="checkbox"> Unemployment</label>
+        <label class="cb-item"><input type="checkbox"> Alimony received</label>
+        <label class="cb-item"><input type="checkbox"> Gambling winnings</label>
+        <label class="cb-item"><input type="checkbox"> Other income</label>
+      </div>
+      <div class="sec-divider">Deductions & credits — check all that apply</div>
+      <div class="cb-group">
+        <label class="cb-item"><input type="checkbox"> Homeownership / mortgage interest</label>
+        <label class="cb-item"><input type="checkbox"> Childcare expenses</label>
+        <label class="cb-item"><input type="checkbox"> Student loan interest</label>
+        <label class="cb-item"><input type="checkbox"> Education credits (1098-T)</label>
+        <label class="cb-item"><input type="checkbox"> EV / energy tax credits</label>
+        <label class="cb-item"><input type="checkbox"> Health savings account (HSA)</label>
+        <label class="cb-item"><input type="checkbox"> Charitable donations</label>
+        <label class="cb-item"><input type="checkbox"> Business expenses</label>
+        <label class="cb-item"><input type="checkbox"> Earned income tax credit (EITC)</label>
+        <label class="cb-item"><input type="checkbox"> Child tax credit</label>
+      </div>
+      <div class="sec-divider">Notes & referral</div>
+      <div class="form-grid">
+        <div class="field"><label>How did you hear about us?</label><select><option>Client referral</option><option>Google search</option><option>Social media (Instagram)</option><option>Social media (Facebook)</option><option>Returning client</option><option>Other</option></select></div>
+        <div class="field"><label>Referred by (name)</label><input type="text" placeholder="Referral name if applicable"></div>
+        <div class="field form-full"><label>Special circumstances / notes</label><textarea placeholder="IRS notices, prior year balances, amended return needed, ITIN application, etc."></textarea></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="clearPanel('intake-tax')">Clear form</button>
+        <button class="btn btn-primary" onclick="showAlert('tax-ok')">💾 Save client record</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSINESS CONSULTING FORM -->
+  <div class="tab-panel" id="intake-biz">
+    <div id="biz-ok" class="alert alert-success">✅ Client intake saved successfully. Record created.</div>
+    <div class="card">
+      <div class="sec-divider">Contact information</div>
+      <div class="form-grid">
+        <div class="field"><label>First name *</label><input type="text" placeholder="First name"></div>
+        <div class="field"><label>Last name *</label><input type="text" placeholder="Last name"></div>
+        <div class="field"><label>Phone *</label><input type="tel" placeholder="(555) 000-0000"></div>
+        <div class="field"><label>Email *</label><input type="email" placeholder="email@address.com"></div>
+        <div class="field form-full"><label>Business name (if existing)</label><input type="text" placeholder="Leave blank if not yet formed"></div>
+      </div>
+      <div class="sec-divider">Business profile</div>
+      <div class="form-grid">
+        <div class="field"><label>Business stage</label><select><option>Idea / pre-launch</option><option>Startup (0–1 year)</option><option>Established (1–5 years)</option><option>Scaling (5+ years)</option></select></div>
+        <div class="field"><label>Industry / niche</label><input type="text" placeholder="e.g. Beauty, Real estate, Food service"></div>
+        <div class="field"><label>Entity type (current or desired)</label><select><option>Not yet formed</option><option>Sole proprietorship</option><option>LLC — single member</option><option>LLC — multi-member</option><option>S-Corp</option><option>C-Corp</option><option>Non-profit / 501(c)(3)</option></select></div>
+        <div class="field"><label>State of formation</label><select><option>Florida</option><option>Georgia</option><option>Texas</option><option>Delaware</option><option>Nevada</option><option>New York</option><option>California</option><option>Other</option></select></div>
+        <div class="field"><label>Annual revenue (approximate)</label><select><option>Pre-revenue</option><option>Under $25K</option><option>$25K–$50K</option><option>$50K–$100K</option><option>$100K–$250K</option><option>$250K–$500K</option><option>$500K+</option></select></div>
+        <div class="field"><label>Employees / contractors</label><select><option>Just me (solo)</option><option>1–5</option><option>6–20</option><option>21–50</option><option>50+</option></select></div>
+      </div>
+      <div class="sec-divider">Services needed — check all that apply</div>
+      <div class="cb-group">
+        <label class="cb-item"><input type="checkbox"> LLC / Corp formation</label>
+        <label class="cb-item"><input type="checkbox"> EIN registration</label>
+        <label class="cb-item"><input type="checkbox"> Operating agreement</label>
+        <label class="cb-item"><input type="checkbox"> Business plan</label>
+        <label class="cb-item"><input type="checkbox"> S-Corp election</label>
+        <label class="cb-item"><input type="checkbox"> Registered agent</label>
+        <label class="cb-item"><input type="checkbox"> Business banking setup</label>
+        <label class="cb-item"><input type="checkbox"> Bookkeeping setup</label>
+        <label class="cb-item"><input type="checkbox"> Payroll setup</label>
+        <label class="cb-item"><input type="checkbox"> Business credit building</label>
+        <label class="cb-item"><input type="checkbox"> Tax strategy / planning</label>
+        <label class="cb-item"><input type="checkbox"> Ongoing consulting retainer</label>
+      </div>
+      <div class="sec-divider">Goals & challenges</div>
+      <div class="form-grid">
+        <div class="field"><label>Primary goal right now</label><select><option>Launch / get legal</option><option>Reduce taxes</option><option>Scale revenue</option><option>Hire staff</option><option>Get funding / investors</option><option>Exit / sell the business</option><option>Other</option></select></div>
+        <div class="field"><label>Timeline / urgency</label><select><option>ASAP</option><option>Within 30 days</option><option>1–3 months</option><option>Just exploring</option></select></div>
+        <div class="field form-full"><label>Biggest challenge or question</label><textarea placeholder="What's keeping you up at night about your business? Be as specific as possible..."></textarea></div>
+        <div class="field"><label>How did you hear about us?</label><select><option>Client referral</option><option>Social media</option><option>Google search</option><option>Returning client</option><option>Other</option></select></div>
+        <div class="field"><label>Referred by (name)</label><input type="text" placeholder="Referral name if applicable"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="clearPanel('intake-biz')">Clear form</button>
+        <button class="btn btn-primary" onclick="showAlert('biz-ok')">💾 Save client record</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMISSIONS -->
+<div class="page" id="page-submissions">
+  <div class="page-header">
+    <div class="page-title">Intake submissions</div>
+    <div class="page-sub">All received intake forms</div>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Client</th><th>Form type</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:500">Marcus Thompson</td><td><span class="pill p-tax">Tax prep</span></td><td style="font-size:12px;color:var(--text3)">Today, 9:14 AM</td><td><span class="pill p-pending">Pending</span></td><td><button class="btn btn-sm" onclick="nav('docs')">Checklist</button></td></tr>
+        <tr><td style="font-weight:500">Renée Williams</td><td><span class="pill p-tax">Tax prep</span></td><td style="font-size:12px;color:var(--text3)">Yesterday</td><td><span class="pill p-review">In review</span></td><td><button class="btn btn-sm" onclick="nav('docs')">Checklist</button></td></tr>
+        <tr><td style="font-weight:500">James Foster</td><td><span class="pill p-consult">Business consult</span></td><td style="font-size:12px;color:var(--text3)">Yesterday</td><td><span class="pill p-pending">Pending</span></td><td><button class="btn btn-sm" onclick="nav('docs')">Checklist</button></td></tr>
+        <tr><td style="font-weight:500">Bloom Beauty LLC</td><td><span class="pill p-biz">Formation</span></td><td style="font-size:12px;color:var(--text3)">Apr 3</td><td><span class="pill p-complete">Complete</span></td><td><button class="btn btn-sm" onclick="nav('invoices')">Invoice</button></td></tr>
+        <tr><td style="font-weight:500">Diana Achebe</td><td><span class="pill p-tax">Tax prep</span></td><td style="font-size:12px;color:var(--text3)">Apr 1</td><td><span class="pill p-filed">Filed</span></td><td><button class="btn btn-sm" onclick="nav('invoices')">Invoice</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DOC CHECKLISTS -->
+<div class="page" id="page-docs">
+  <div class="page-header">
+    <div class="page-title">Document checklists</div>
+    <div class="page-sub">Track required documents by service type — check off as received</div>
+  </div>
+  <div class="cl-filter">
+    <button class="cl-btn active" onclick="switchCL('cl-tax-ind',this)">📄 Tax — Individual</button>
+    <button class="cl-btn" onclick="switchCL('cl-tax-se',this)">💼 Tax — Self-employed</button>
+    <button class="cl-btn" onclick="switchCL('cl-formation',this)">🏢 Business formation</button>
+    <button class="cl-btn" onclick="switchCL('cl-consult',this)">📊 Consulting</button>
+  </div>
+
+  <div id="cl-tax-ind">
+    <div class="cl-progress-wrap">
+      <div class="cl-progress-label" id="lbl-cl-tax-ind">0 of 10 documents received</div>
+      <div class="cl-bar-bg"><div class="cl-bar-fill" id="bar-cl-tax-ind" style="width:0%"></div></div>
+    </div>
+    <div class="cl-list" id="list-cl-tax-ind">
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">Government-issued photo ID (driver's license or passport)</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">Social security cards — client and all dependents</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">All W-2 forms from every employer</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">All 1099 forms (1099-NEC, 1099-INT, 1099-DIV, 1099-R, 1099-G)</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">Prior year tax return — federal and state</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">Bank account information for direct deposit or payment</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">1098 mortgage interest statement</span><span class="cl-tag cl-rec">If homeowner</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">Childcare provider info — name, EIN, and amount paid</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">1098-T tuition and education expense statement</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-ind')"><span class="cl-label">1095-A health insurance marketplace statement</span><span class="cl-tag cl-opt">If applicable</span></div>
+    </div>
+  </div>
+
+  <div id="cl-tax-se" style="display:none">
+    <div class="cl-progress-wrap">
+      <div class="cl-progress-label" id="lbl-cl-tax-se">0 of 10 documents received</div>
+      <div class="cl-bar-bg"><div class="cl-bar-fill" id="bar-cl-tax-se" style="width:0%"></div></div>
+    </div>
+    <div class="cl-list" id="list-cl-tax-se">
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Photo ID and social security card</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">All 1099-NEC and 1099-K forms received</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Profit & loss statement or income / expense summary</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Business bank statements — all accounts, 12 months</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Mileage log (business miles driven)</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Prior year tax return</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Home office square footage (if claiming deduction)</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Equipment and asset purchase receipts</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Estimated tax payment records (1040-ES vouchers)</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-tax-se')"><span class="cl-label">Payroll records / W-3 / 941s (if you have employees)</span><span class="cl-tag cl-opt">If applicable</span></div>
+    </div>
+  </div>
+
+  <div id="cl-formation" style="display:none">
+    <div class="cl-progress-wrap">
+      <div class="cl-progress-label" id="lbl-cl-formation">0 of 8 documents received</div>
+      <div class="cl-bar-bg"><div class="cl-bar-fill" id="bar-cl-formation" style="width:0%"></div></div>
+    </div>
+    <div class="cl-list" id="list-cl-formation">
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Photo ID for all members and owners</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">SSN or ITIN for all members</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Desired business name — provide 3 options in order of preference</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Registered physical address (no P.O. boxes)</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Ownership percentage breakdown for multi-member entities</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Nature of business description and NAICS code</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Operating agreement (we draft if needed)</span><span class="cl-tag cl-rec">Recommended</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-formation')"><span class="cl-label">Business banking info for EIN confirmation mailing</span><span class="cl-tag cl-opt">If applicable</span></div>
+    </div>
+  </div>
+
+  <div id="cl-consult" style="display:none">
+    <div class="cl-progress-wrap">
+      <div class="cl-progress-label" id="lbl-cl-consult">0 of 7 documents received</div>
+      <div class="cl-bar-bg"><div class="cl-bar-fill" id="bar-cl-consult" style="width:0%"></div></div>
+    </div>
+    <div class="cl-list" id="list-cl-consult">
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Completed intake questionnaire</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Most recent 2 years of personal and business tax returns</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Last 3 months of business bank statements</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Current profit & loss and balance sheet</span><span class="cl-tag cl-req">Required</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Entity documents — Articles of organization and operating agreement</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Key contracts — leases, vendor agreements, employment agreements</span><span class="cl-tag cl-opt">If applicable</span></div>
+      <div class="cl-item"><input type="checkbox" onchange="updateCL('cl-consult')"><span class="cl-label">Business plan or pitch deck</span><span class="cl-tag cl-opt">If applicable</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICES -->
+<div class="page" id="page-invoices">
+  <div class="page-header">
+    <div class="page-title">Invoices</div>
+    <div class="page-sub">Track payments across all clients and services</div>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Total invoiced</div><div class="metric-value">$6,740</div><div class="metric-delta">This season</div></div>
+    <div class="metric"><div class="metric-label">Collected</div><div class="metric-value">$3,900</div><div class="metric-delta" style="color:#27500A">↑ 58% collected</div></div>
+    <div class="metric"><div class="metric-label">Outstanding</div><div class="metric-value">$2,840</div></div>
+    <div class="metric"><div class="metric-label">Overdue</div><div class="metric-value">$450</div><div class="metric-delta" style="color:#791F1F">Action needed</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title" style="margin:0">All invoices</div>
+      <button class="btn btn-primary btn-sm" onclick="nav('new-invoice')">+ New invoice</button>
+    </div>
+    <table>
+      <thead><tr><th>Invoice #</th><th>Client</th><th>Service</th><th>Amount</th><th>Due date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600;font-size:12px">#1008</td><td>Marcus Thompson</td><td style="color:var(--text3);font-size:12px">Tax prep</td><td style="font-weight:600">$350</td><td style="font-size:12px;color:var(--text3)">Apr 15, 2025</td><td><span class="pill p-sent">Sent</span></td><td><button class="btn btn-sm">Remind</button></td></tr>
+        <tr><td style="font-weight:600;font-size:12px">#1007</td><td>Diana Achebe</td><td style="color:var(--text3);font-size:12px">Tax prep</td><td style="font-weight:600">$300</td><td style="font-size:12px;color:var(--text3)">Apr 5, 2025</td><td><span class="pill p-paid">Paid ✓</span></td><td><button class="btn btn-sm">Receipt</button></td></tr>
+        <tr><td style="font-weight:600;font-size:12px">#1006</td><td>Bloom Beauty LLC</td><td style="color:var(--text3);font-size:12px">Formation + EIN</td><td style="font-weight:600">$650</td><td style="font-size:12px;color:var(--text3)">Apr 7, 2025</td><td><span class="pill p-paid">Paid ✓</span></td><td><button class="btn btn-sm">Receipt</button></td></tr>
+        <tr><td style="font-weight:600;font-size:12px">#1005</td><td>Renée Williams</td><td style="color:var(--text3);font-size:12px">Tax prep</td><td style="font-weight:600;color:#791F1F">$400</td><td style="font-size:12px;color:#791F1F">Mar 28, 2025</td><td><span class="pill p-overdue">Overdue</span></td><td><button class="btn btn-sm btn-danger">Remind</button></td></tr>
+        <tr><td style="font-weight:600;font-size:12px">#1004</td><td>James Foster</td><td style="color:var(--text3);font-size:12px">Consulting retainer</td><td style="font-weight:600">$800</td><td style="font-size:12px;color:var(--text3)">Apr 1, 2025</td><td><span class="pill p-sent">Sent</span></td><td><button class="btn btn-sm">Remind</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- NEW INVOICE -->
+<div class="page" id="page-new-invoice">
+  <div class="page-header">
+    <div class="page-title">Create invoice</div>
+    <div class="page-sub">Build and send a new invoice to a client</div>
+  </div>
+  <div id="inv-ok" class="alert alert-success">✅ Invoice #<span id="inv-num-display">1009</span> created and sent.</div>
+  <div class="card">
+    <div class="sec-divider">Invoice details</div>
+    <div class="form-grid">
+      <div class="field"><label>Invoice number</label><input type="text" id="inv-num" value="#1009"></div>
+      <div class="field"><label>Invoice date</label><input type="date" id="inv-date"></div>
+      <div class="field"><label>Client</label>
+        <select id="inv-client">
+          <option>Marcus Thompson</option><option>Renée Williams</option>
+          <option>James Foster</option><option>Bloom Beauty LLC</option>
+          <option>Diana Achebe</option><option>New / other client</option>
+        </select>
+      </div>
+      <div class="field"><label>Due date</label><input type="date" id="inv-due"></div>
+    </div>
+
+    <div class="sec-divider">Line items</div>
+    <div style="display:grid;grid-template-columns:1fr 60px 90px 90px 30px;gap:8px;margin-bottom:8px;padding:0 2px">
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3)">Description</span>
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3)">Qty</span>
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3)">Rate ($)</span>
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3)">Amount</span>
+      <span></span>
+    </div>
+    <div id="inv-lines">
+      <div class="inv-line">
+        <input type="text" placeholder="e.g. Federal tax preparation" oninput="calcInv()">
+        <input type="number" value="1" min="1" step="1" oninput="calcInv()">
+        <input type="number" placeholder="0.00" step="0.01" oninput="calcInv()">
+        <input type="text" placeholder="$0.00" readonly>
+        <button class="inv-del" onclick="delLine(this)" title="Remove">×</button>
+      </div>
+      <div class="inv-line">
+        <input type="text" placeholder="e.g. State return — Florida" oninput="calcInv()">
+        <input type="number" value="1" min="1" step="1" oninput="calcInv()">
+        <input type="number" placeholder="0.00" step="0.01" oninput="calcInv()">
+        <input type="text" placeholder="$0.00" readonly>
+        <button class="inv-del" onclick="delLine(this)" title="Remove">×</button>
+      </div>
+    </div>
+    <button class="btn btn-sm" onclick="addLine()" style="margin-top:10px">+ Add line item</button>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <div class="inv-totals">
+        <div class="inv-t-row"><span style="color:var(--text2)">Subtotal</span><span id="inv-sub">$0.00</span></div>
+        <div class="inv-t-row"><span style="color:var(--text2)">Discount</span><span>—</span></div>
+        <div class="inv-t-row big"><span>Total due</span><span id="inv-total" style="color:var(--gold)">$0.00</span></div>
+      </div>
+    </div>
+
+    <div class="sec-divider">Payment & notes</div>
+    <div class="form-grid">
+      <div class="field"><label>Payment methods accepted</label>
+        <select><option>Zelle, Cash App, check</option><option>Zelle only</option><option>Cash App only</option><option>Check only</option><option>Cash only</option><option>All methods</option></select>
+      </div>
+      <div class="field"><label>Payment terms</label>
+        <select><option>Due on receipt</option><option>Net 7</option><option>Net 15</option><option>Net 30</option><option>50% deposit, 50% on delivery</option></select>
+      </div>
+      <div class="field form-full"><label>Invoice notes / memo</label><textarea placeholder="e.g. Thank you for choosing Legacy. Payment accepted via Zelle to [phone] or Cash App to $[cashtag]. Make checks payable to [Business Name]."></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="clearPanel('page-new-invoice')">Clear</button>
+      <button class="btn" onclick="showAlert('inv-ok')">Save as draft</button>
+      <button class="btn btn-gold" onclick="sendInvoice()">📤 Save & send invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- APPOINTMENTS -->
+<div class="page" id="page-appointments">
+  <div class="page-header">
+    <div class="page-title">Appointments</div>
+    <div class="page-sub">April 2025 — click any date to view details</div>
+  </div>
+  <div class="cal-wrap">
+    <div class="card">
+      <div class="cal-day-headers">
+        <div class="cal-dh">Sun</div><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div>
+        <div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Upcoming appointments</div>
+        <div class="appt-card"><div class="appt-time">Apr 8<br>9:00 AM</div><div><div class="appt-name">Marcus Thompson</div><div class="appt-type">Tax prep review · In person</div></div></div>
+        <div class="appt-card"><div class="appt-time">Apr 8<br>2:00 PM</div><div><div class="appt-name">James Foster</div><div class="appt-type">Business consult · Zoom</div></div></div>
+        <div class="appt-card"><div class="appt-time">Apr 10<br>10:00 AM</div><div><div class="appt-name">New client</div><div class="appt-type">Tax intake · In person</div></div></div>
+        <div class="appt-card"><div class="appt-time">Apr 12<br>1:00 PM</div><div><div class="appt-name">Diana Achebe</div><div class="appt-type">Return delivery · In person</div></div></div>
+        <div class="appt-card"><div class="appt-time">Apr 15<br>11:00 AM</div><div><div class="appt-name">Renée Williams</div><div class="appt-type">Return sign-off · Phone</div></div></div>
+        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px" onclick="nav('new-appt')">+ Book appointment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOK APPOINTMENT -->
+<div class="page" id="page-new-appt">
+  <div class="page-header">
+    <div class="page-title">Book appointment</div>
+    <div class="page-sub">Schedule a new client meeting or call</div>
+  </div>
+  <div id="appt-ok" class="alert alert-success">✅ Appointment booked and added to your calendar.</div>
+  <div class="card">
+    <div class="sec-divider">Client & service</div>
+    <div class="form-grid">
+      <div class="field"><label>Client *</label>
+        <select><option>Marcus Thompson</option><option>Renée Williams</option><option>James Foster</option><option>Bloom Beauty LLC</option><option>Diana Achebe</option><option>New / walk-in client</option></select>
+      </div>
+      <div class="field"><label>Service type</label>
+        <select><option>Tax prep review</option><option>Tax return delivery / sign-off</option><option>Business consultation</option><option>Formation kick-off</option><option>General intake / first meeting</option><option>Follow-up / check-in</option><option>Document drop-off</option><option>Other</option></select>
+      </div>
+    </div>
+    <div class="sec-divider">Date & time</div>
+    <div class="form-grid">
+      <div class="field"><label>Date *</label><input type="date"></div>
+      <div class="field"><label>Start time *</label>
+        <select>
+          <option>8:00 AM</option><option>8:30 AM</option><option>9:00 AM</option><option>9:30 AM</option>
+          <option>10:00 AM</option><option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+          <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option><option>1:30 PM</option>
+          <option>2:00 PM</option><option>2:30 PM</option><option>3:00 PM</option><option>3:30 PM</option>
+          <option>4:00 PM</option><option>4:30 PM</option><option>5:00 PM</option><option>5:30 PM</option>
+        </select>
+      </div>
+      <div class="field"><label>Duration</label>
+        <select><option>30 minutes</option><option>45 minutes</option><option>1 hour</option><option>1.5 hours</option><option>2 hours</option></select>
+      </div>
+      <div class="field"><label>Meeting format</label>
+        <select><option>In person</option><option>Phone call</option><option>Video — Zoom</option><option>Video — Google Meet</option><option>Video — FaceTime</option></select>
+      </div>
+    </div>
+    <div class="sec-divider">Confirmation & notes</div>
+    <div class="form-grid">
+      <div class="field"><label>Status</label>
+        <select><option>Confirmed</option><option>Tentative</option><option>Awaiting client confirmation</option></select>
+      </div>
+      <div class="field"><label>Send reminder</label>
+        <select><option>24 hours before</option><option>2 hours before</option><option>1 hour before</option><option>Day-of morning</option><option>No reminder</option></select>
+      </div>
+      <div class="field form-full"><label>Appointment notes</label><textarea placeholder="Documents to bring, topics to cover, access info for video call, any special instructions..."></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="clearPanel('page-new-appt')">Clear</button>
+      <button class="btn btn-primary" onclick="showAlert('appt-ok')">📅 Book appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAX PREP -->
+<div class="page" id="page-taxes">
+  <div class="page-header">
+    <div class="page-title">Tax preparation</div>
+    <div class="page-sub">Credentials, e-file stats, and bureau management</div>
+  </div>
+  <div class="card-row">
+    <div class="card">
+      <div class="card-title">Active credentials</div>
+      <table><tbody>
+        <tr><td style="color:var(--text2);font-size:12px;width:120px">PTIN</td><td style="font-weight:500">P•••••789</td><td><span class="pill p-filed">Active</span></td></tr>
+        <tr><td style="color:var(--text2);font-size:12px">EFIN</td><td style="font-weight:500">1•••••4</td><td><span class="pill p-filed">Active</span></td></tr>
+        <tr><td style="color:var(--text2);font-size:12px">Service bureau</td><td style="font-weight:500">Enabled</td><td><span class="pill p-filed">Active</span></td></tr>
+        <tr><td style="color:var(--text2);font-size:12px">State auth</td><td style="font-weight:500">Florida</td><td><span class="pill p-filed">Active</span></td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <div class="card-title">2025 season stats</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Returns e-filed</span><span style="font-weight:600">29</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Paper filed</span><span style="font-weight:600">2</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Extensions filed</span><span style="font-weight:600">3</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Bureau sub-preparers</span><span style="font-weight:600">5</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--text2)">Acknowledgements received</span><span style="font-weight:600">27</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMATION -->
+<div class="page" id="page-formation">
+  <div class="page-header">
+    <div class="page-title">Business formation</div>
+    <div class="page-sub">Entity filing tracker</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="card-title" style="margin:0">Active filings</div>
+      <button class="btn btn-primary btn-sm" onclick="nav('intake')">+ New formation</button>
+    </div>
+    <table>
+      <thead><tr><th>Business name</th><th>Entity type</th><th>State</th><th>Ordered</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:500">Bloom Beauty LLC</td><td style="color:var(--text3);font-size:12px">LLC</td><td style="color:var(--text3);font-size:12px">FL</td><td style="color:var(--text3);font-size:12px">Apr 1</td><td><span class="pill p-filed">Filed ✓</span></td></tr>
+        <tr><td style="font-weight:500">Foster Logistics LLC</td><td style="color:var(--text3);font-size:12px">LLC → S-Corp</td><td style="color:var(--text3);font-size:12px">FL</td><td style="color:var(--text3);font-size:12px">Apr 3</td><td><span class="pill p-progress">In progress</span></td></tr>
+        <tr><td style="font-weight:500">Crown & Grace Events</td><td style="color:var(--text3);font-size:12px">LLC</td><td style="color:var(--text3);font-size:12px">GA</td><td style="color:var(--text3);font-size:12px">Apr 5</td><td><span class="pill p-review">Pending docs</span></td></tr>
+        <tr><td style="font-weight:500">TBD — New client</td><td style="color:var(--text3);font-size:12px">LLC</td><td style="color:var(--text3);font-size:12px">FL</td><td style="color:var(--text3);font-size:12px">—</td><td><span class="pill p-draft">Intake only</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ---- NAV ----
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  var pg=document.getElementById('page-'+p);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(x=>{
+    if(x.getAttribute('onclick')&&x.getAttribute('onclick').includes("'"+p+"'"))
+      x.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+
+// ---- TABS ----
+function switchTab(group,type,el){
+  var container=el.closest('.page');
+  container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  var panel=document.getElementById(group+'-'+type);
+  if(panel) panel.classList.add('active');
+}
+
+// ---- DOC CHECKLISTS ----
+var clPanels=['cl-tax-ind','cl-tax-se','cl-formation','cl-consult'];
+function switchCL(id,el){
+  document.querySelectorAll('.cl-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  clPanels.forEach(p=>{
+    var el2=document.getElementById(p);
+    if(el2) el2.style.display=(p===id)?'block':'none';
+  });
+}
+function updateCL(id){
+  var list=document.getElementById('list-'+id);
+  if(!list) return;
+  var items=list.querySelectorAll('.cl-item');
+  var total=items.length,done=0;
+  items.forEach(item=>{
+    var cb=item.querySelector('input[type=checkbox]');
+    if(cb.checked){item.classList.add('checked');done++;}
+    else item.classList.remove('checked');
+  });
+  var lbl=document.getElementById('lbl-'+id);
+  var bar=document.getElementById('bar-'+id);
+  if(lbl) lbl.textContent=done+' of '+total+' documents received';
+  if(bar) bar.style.width=Math.round(done/total*100)+'%';
+}
+
+// ---- ALERTS ----
+function showAlert(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.style.display='block';
+  setTimeout(()=>{el.style.display='none';},3500);
+}
+function sendInvoice(){
+  var num=document.getElementById('inv-num');
+  var disp=document.getElementById('inv-num-display');
+  if(num&&disp) disp.textContent=num.value;
+  showAlert('inv-ok');
+}
+
+// ---- CLEAR FORM ----
+function clearPanel(id){
+  var panel=document.getElementById(id);
+  if(!panel) return;
+  panel.querySelectorAll('input:not([readonly]),textarea').forEach(el=>{
+    if(el.type==='checkbox') el.checked=false;
+    else el.value='';
+  });
+  panel.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  calcInv();
+}
+
+// ---- INVOICE CALCULATOR ----
+function calcInv(){
+  var lines=document.querySelectorAll('#inv-lines .inv-line');
+  var sub=0;
+  lines.forEach(line=>{
+    var inputs=line.querySelectorAll('input');
+    if(inputs.length<4) return;
+    var qty=parseFloat(inputs[1].value)||0;
+    var rate=parseFloat(inputs[2].value)||0;
+    var amt=qty*rate;
+    inputs[3].value=amt>0?'$'+amt.toFixed(2):'$0.00';
+    sub+=amt;
+  });
+  var subEl=document.getElementById('inv-sub');
+  var totEl=document.getElementById('inv-total');
+  if(subEl) subEl.textContent='$'+sub.toFixed(2);
+  if(totEl) totEl.textContent='$'+sub.toFixed(2);
+}
+function addLine(){
+  var div=document.createElement('div');
+  div.className='inv-line';
+  div.innerHTML='<input type="text" placeholder="Service description" oninput="calcInv()"><input type="number" value="1" min="1" step="1" oninput="calcInv()"><input type="number" placeholder="0.00" step="0.01" oninput="calcInv()"><input type="text" placeholder="$0.00" readonly><button class="inv-del" onclick="delLine(this)" title="Remove">×</button>';
+  document.getElementById('inv-lines').appendChild(div);
+}
+function delLine(btn){
+  var lines=document.querySelectorAll('#inv-lines .inv-line');
+  if(lines.length>1){btn.closest('.inv-line').remove();calcInv();}
+}
+
+// ---- CLIENT SEARCH ----
+function filterClients(q){
+  var rows=document.querySelectorAll('#clients-table tbody tr');
+  q=q.toLowerCase();
+  rows.forEach(row=>{
+    row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+// ---- BUILD APRIL CALENDAR ----
+(function(){
+  var grid=document.getElementById('cal-grid');
+  if(!grid) return;
+  var apptDays=[8,8,10,12,15,17,21,22,24,29];
+  var today=8;
+  var firstDay=2; // April 1 2025 = Tuesday
+  for(var i=0;i<firstDay;i++){
+    var e=document.createElement('div');
+    e.className='cal-day empty';
+    grid.appendChild(e);
+  }
+  for(var d=1;d<=30;d++){
+    var cell=document.createElement('div');
+    var classes='cal-day';
+    if(d===today) classes+=' today';
+    else if(apptDays.includes(d)) classes+=' has-appt';
+    cell.className=classes;
+    cell.innerHTML='<div class="cal-num">'+d+'</div>'+(apptDays.includes(d)||d===today?'<div class="cal-dot"></div>':'');
+    grid.appendChild(cell);
+  }
+})();
+</script>
+</body>
+</html>
